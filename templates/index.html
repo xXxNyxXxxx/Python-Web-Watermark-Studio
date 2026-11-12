@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch & Single Watermark Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h2 class="text-center mb-2">Python Watermark Studio</h2>
+                        <p class="text-center text-muted mb-4">Upload a single photo for instant preview, or select multiple photos for batch ZIP processing.</p>
+                        
+                        <form method="POST" enctype="multipart/form-data">
+                            <!-- Multi-File Image Input -->
+                            <div class="mb-3">
+                                <label for="images" class="form-label fw-bold">Select Image(s) (JPG/PNG)</label>
+                                <input class="form-control" type="file" id="images" name="images" accept="image/*" multiple required>
+                                <div class="form-text">Hold Ctrl (Windows) or Cmd (Mac) to select multiple files at once.</div>
+                            </div>
+                            
+                            <!-- Watermark Source Options Toggle (Text or Logo Image) -->
+                            <div class="card bg-light p-3 mb-3 border">
+                                <label class="form-label fw-bold">Watermark Type</label>
+                                <div class="btn-group w-100 mb-3" role="group" aria-label="Watermark Type Toggle">
+                                    <input type="radio" class="btn-check" name="watermark_type" id="type_text" value="text" checked autocomplete="off" onchange="toggleWatermarkType()">
+                                    <label class="btn btn-outline-primary w-50" for="type_text">Text Watermark</label>
+
+                                    <input type="radio" class="btn-check" name="watermark_type" id="type_logo" value="logo" autocomplete="off" onchange="toggleWatermarkType()">
+                                    <label class="btn btn-outline-primary w-50" for="type_logo">Logo Watermark (.png)</label>
+                                </div>
+                                
+                                <!-- Watermark Text Container -->
+                                <div class="mb-0" id="text_container">
+                                    <label for="watermark_text" class="form-label text-muted small">Watermark Text / Website</label>
+                                    <input type="text" class="form-control" id="watermark_text" name="watermark_text" value="© github.com/yourusername">
+                                </div>
+
+                                <!-- Logo Image Container -->
+                                <div class="mb-0 d-none" id="logo_container">
+                                    <label for="logo_file" class="form-label text-muted small">Watermark Logo (.png with transparency)</label>
+                                    <input class="form-control" type="file" id="logo_file" name="logo_file" accept="image/png">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <!-- Position Select -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="position" class="form-label fw-bold">Position</label>
+                                    <select class="form-select" id="position" name="position" onchange="toggleAngleSlider()">
+                                        <option value="bottom-right" selected>Bottom Right</option>
+                                        <option value="bottom-left">Bottom Left</option>
+                                        <option value="top-right">Top Right</option>
+                                        <option value="top-left">Top Left</option>
+                                        <option value="mid-right">Mid Right</option>
+                                        <option value="mid-left">Mid Left</option>
+                                        <option value="grid">Diagonal Grid Pattern</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size Select -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="size" class="form-label fw-bold">Watermark Size</label>
+                                    <select class="form-select" id="size" name="size">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+                                </div>
+
+                                <!-- Font Style Select -->
+                                <div class="col-md-4 mb-3" id="font_style_container">
+                                    <label for="font_style" class="form-label fw-bold">Font Style</label>
+                                    <select class="form-select" id="font_style" name="font_style">
+                                        <option value="sans-serif" selected>Sans-Serif (Modern)</option>
+                                        <option value="serif">Serif (Classic)</option>
+                                        <option value="monospace">Monospace (Code)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Watermark Opacity / Strength Slider -->
+                            <div class="mb-3">
+                                <label for="opacity" class="form-label fw-bold">Watermark Strength (Opacity): <span id="opacityVal" class="text-primary">160</span></label>
+                                <input type="range" class="form-range" id="opacity" name="opacity" min="40" max="255" value="160" oninput="document.getElementById('opacityVal').innerText = this.value">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.8rem;">
+                                    <span>Subtle (40)</span>
+                                    <span>Balanced (160)</span>
+                                    <span>Opaque (255)</span>
+                                </div>
+                            </div>
+
+                            <!-- Watermark Rotation Angle Slider (Hidden by default, shown only on Grid selection) -->
+                            <div class="mb-3 d-none" id="angle_slider_container">
+                                <label for="rotation" class="form-label fw-bold">Slanted Grid Angle: <span id="rotationVal" class="text-primary">-30</span>°</label>
+                                <input type="range" class="form-range" id="rotation" name="rotation" min="-90" max="90" value="-30" oninput="document.getElementById('rotationVal').innerText = this.value">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.8rem;">
+                                    <span>-90°</span>
+                                    <span>0° (Flat)</span>
+                                    <span>90°</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mt-3 py-2 fw-bold">Apply Watermark</button>
+                        </form>
+
+                        <script>
+                        function toggleWatermarkType() {
+                            const isText = document.getElementById('type_text').checked;
+                            document.getElementById('text_container').classList.toggle('d-none', !isText);
+                            document.getElementById('logo_container').classList.toggle('d-none', isText);
+                            document.getElementById('font_style_container').classList.toggle('d-none', !isText);
+                        }
+
+                        function toggleAngleSlider() {
+                            const position = document.getElementById('position').value;
+                            const angleContainer = document.getElementById('angle_slider_container');
+                            // Show angle slider ONLY if the grid pattern is selected
+                            if (position === 'grid') {
+                                angleContainer.classList.remove('d-none');
+                            } else {
+                                angleContainer.classList.add('d-none');
+                            }
+                        }
+
+                        // Run on page load to check initial state
+                        window.addEventListener('DOMContentLoaded', () => {
+                            toggleAngleSlider();
+                        });
+                        </script>
+
+                        <!-- CASE 1: SINGLE PHOTO PREVIEW -->
+                        {% if single_image %}
+                        <div class="mt-5 text-center">
+                            <hr>
+                            <h4 class="mb-3">Single Image Preview:</h4>
+                            <img src="{{ url_for('static', filename='watermarked/' + single_image) }}" class="img-fluid rounded shadow mb-3" style="max-height: 500px;" alt="Watermarked Preview">
+                            <div>
+                                <a href="{{ url_for('static', filename='watermarked/' + single_image) }}" class="btn btn-success px-4" download>Download Watermarked Image</a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- CASE 2: BATCH PROCESSING RESULTS -->
+                        {% if batch_zip %}
+                        <div class="mt-5">
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="mb-0">Batch Complete ({{ processed_files|length }} Images)</h4>
+                                <a href="{{ url_for('static', filename='watermarked/' + batch_zip) }}" class="btn btn-success btn-lg">
+                                    Download All (.ZIP)
+                                </a>
+                            </div>
+                            
+                            <!-- Thumbnail Grid of Batch Results -->
+                            <div class="row g-3">
+                                {% for img_file in processed_files %}
+                                <div class="col-6 col-md-4">
+                                    <div class="card h-100 shadow-sm">
+                                        <img src="{{ url_for('static', filename='watermarked/' + img_file) }}" class="card-img-top" style="height: 160px; object-fit: cover;" alt="Batch Preview">
+                                        <div class="card-body p-2 text-center">
+                                            <small class="text-muted d-block text-truncate mb-1">{{ img_file }}</small>
+                                            <a href="{{ url_for('static', filename='watermarked/' + img_file) }}" class="btn btn-sm btn-outline-primary w-100" download>Download</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

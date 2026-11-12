@@ -1,0 +1,9 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Flask instance / local uploads and outputs
+static/uploads/*
+static/watermarked/*
+!static/uploads/.gitkeep
+!static/watermarked/.gitkeep
