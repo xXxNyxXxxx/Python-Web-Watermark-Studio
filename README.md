@@ -36,14 +36,21 @@ A lightweight, feature-rich web application built with **Flask** and **Pillow (P
    cd python-web-watermark-studio
 
 
-2. **Navigate into the directory:**
-    ```bash
-    cd tic-tac-toe-web
+2. **Create and activate a virtual environment:**
+   ```bash
+   python -m venv venv
+   On Windows: venv\Scripts\activate
+   Mac/Linux: source venv/bin/activate
 
-3. **Open the game:**
+3. **Install dependencies:**
     ```bash
-    Double-click index.html to open it directly in your web browser, or use an extension like Live Server in Visual Studio Code.
+    pip install Flask Pillow Werkzeug
 
+4. **Run the application:**
+    ```bash
+    python app.py
+    Open your browser and navigate to http://127.0.0.1:5000.
+    
 ---
 
 ## 📄 License
